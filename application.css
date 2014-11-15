@@ -1,0 +1,31 @@
+body{
+  background-color:black;
+}
+
+.mask-container{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+
+.mask-img{
+  z-index:4;
+  position: absolute;
+  pointer-events:none;
+  width:100%;
+  height:100%;
+}
+
+.mask-a {
+  background-color: #440f0c;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+.mask-a img {
+  position: absolute;
+  overflow: hidden;
+}
