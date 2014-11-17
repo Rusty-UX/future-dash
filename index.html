@@ -7,35 +7,90 @@
 <style>
       body { margin: 0; }
       canvas { width: 100%; height: 100% }
+      .overlay{ position:absolute; top:0; left:0; width: 50px; height: 50px; background-color:red; z-index: 1000;}
 </style>
+<script src="js/jquery.min.js"></script>
 <script src="js/three.js"></script>
+<script src="js/orbitControls.js"></script>
+<script type="x-shader/x-vertex" id="vertex-shader">
+varying vec3 vNormal;
+
+void main(){
+  vNormal = normal;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+}
+</script>
+<script type="x-shader/x-fragment" id="fragment-shader">
+varying vec3 vNormal;
+
+void main(){
+  vec3 light = vec3(0.5,0.2,1.0);
+  light = normalize(light);
+  float dProd = max(0.0, dot(vNormal, light));
+  gl_FragColor = vec4(dProd, dProd, dProd, 1.0);
+}
+
+</script>
 <script>
 
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight,0.1,1000);
-var renderer = new THREE.WebGLRenderer();
+var scene, camera, renderer, controls, mesh, attributes;
 
-renderer.setSize(window.innerWidth,window.innerHeight);
-document.body.appendChild(renderer.domElement);
+init();
+function init(){
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight,0.1,1000);
+  renderer = new THREE.WebGLRenderer();
 
-var geometry = new THREE.BoxGeometry(1,1,1);
-var material = new THREE.MeshBasicMaterial({ color: 0x00ff00});
-var cube = new THREE.Mesh(geometry, material);
+  controls = new THREE.OrbitControls( camera );
+  controls.addEventListener( 'change', render );
 
-scene.add(cube);
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-camera.position.z = 5;
+  mesh = THREE.SceneUtils.createMultiMaterialObject(new THREE.IcosahedronGeometry( 1), [
+      new THREE.MeshBasicMaterial({color: 0xffffff, shading: THREE.FlatShading, wireframe: true, wireframeLinewidth:5, transparent: true}),
+      //new THREE.MeshBasicMaterial({color: 0xf000000})
+  ]);
 
-function render(){
-  requestAnimationFrame(render);
-  cube.rotation.x += 0.1;
-  cube.rotation.y += 0.1;
-  renderer.render(scene, camera);
+  scene.add(mesh);
+  camera.position.z = 5;
+
+  //shaders
+  var attributes = {
+    displacement:{
+      type: 'f',
+      value: []
+    }
+  };
+
+  var vShader = $('#vertex-shader');
+  var fShader = $('#fragment-shader');
+
+  var shaderMaterial = new THREE.ShaderMaterial({
+    //attributes: attributes,
+    vertexShader: vShader.text(),
+    fragmentShader: fShader.text()
+  });
+
+  // var verts = mesh.geometry.vertices;
+  // var values = attributes.displacement.value;
+
+  // for (var v = 0; v < verts.length; v ++){
+  //   values.push(Math.random() * 30);
+  // }
+
 }
+
+var render = function () {
+  requestAnimationFrame( render );
+  mesh.rotation.x += 0.01;
+  renderer.render(scene, camera);
+};
 
 render();
 
 </script>
 <canvas></canvas>
+<div class="overlay">yo</div>
 </body>
 </html>
